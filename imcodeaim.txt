@@ -1,0 +1,51 @@
+-- MENU TOGGLE AIM + TITLE
+local UIS = game:GetService("UserInputService")
+
+local MenuGui = Instance.new("ScreenGui", LP.PlayerGui)
+MenuGui.Name = "AimMenu"
+MenuGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame", MenuGui)
+MainFrame.Size = UDim2.new(0, 140, 0, 90)
+MainFrame.Position = UDim2.new(0, 20, 0, 200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local FrameCorner = Instance.new("UICorner", MainFrame)
+FrameCorner.CornerRadius = UDim.new(0, 12)
+
+-- TITLE
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Nexus Aim"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+
+-- TOGGLE BUTTON
+local ToggleBtn = Instance.new("TextButton", MainFrame)
+ToggleBtn.Size = UDim2.new(1, -20, 0, 35)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 40)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextScaled = true
+ToggleBtn.Text = "AIM: ON"
+ToggleBtn.BorderSizePixel = 0
+
+local BtnCorner = Instance.new("UICorner", ToggleBtn)
+BtnCorner.CornerRadius = UDim.new(0, 8)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Settings.Enabled = not Settings.Enabled
+    if Settings.Enabled then
+        ToggleBtn.Text = "AIM: ON"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    else
+        ToggleBtn.Text = "AIM: OFF"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+    end
+end)
