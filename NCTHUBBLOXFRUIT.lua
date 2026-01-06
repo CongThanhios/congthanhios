@@ -1,92 +1,114 @@
+-- Gọi thư viện giao diện
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
 -- Tạo Cửa Sổ Chính
 local Window = OrionLib:MakeWindow({
-    Name = "NCT Hub | by CONGTHANHIOS", 
+    Name = "NCT Hub | Blox Fruit", 
     HidePremium = false, 
     SaveConfig = true, 
     ConfigFolder = "NCTHubConfig",
     IntroText = "Loading NCT Hub..."
 })
 
--- TAB HOME
-local HomeTab = Window:MakeTab({
-	Name = "Tab Home",
-	Icon = "rbxassetid://4483345998",
-	PremiumOnly = false
-})
+-- BIẾN TOÀN CỤC (Variables)
+_G.AutoFarm = false
+_G.AutoBuso = true
 
-HomeTab:AddLabel("Information")
-HomeTab:AddParagraph("Facebook Link","https://www.facebook.com/nguyencongthanh06")
+-- HÀM DI CHUYỂN (TWEEN) - Giúp bay đến mục tiêu
+function Tween(Target)
+    local Distance = (Target.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    local Speed = 300 -- Tốc độ bay
+    local TweenServ = game:GetService("TweenService")
+    local Info = TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear)
+    local Tween = TweenServ:Create(game.Players.LocalPlayer.Character.HumanoidRootPart, Info, {CFrame = Target})
+    Tween:Play()
+end
 
-HomeTab:AddButton({
-	Name = "Sao chép link Facebook",
-	Callback = function()
-		setclipboard("https://www.facebook.com/nguyencongthanh06")
-        -- Sửa tên thông báo thành NCT Hub cho đồng bộ
-        OrionLib:MakeNotification({Name = "NCT Hub", Content = "Đã sao chép link FB!", Time = 5})
-	end    
-})
-
-HomeTab:AddLabel("--- Server Status ---")
--- Tạo các Label để cập nhật động
-local TimeLabel = HomeTab:AddLabel("Time: Updating...")
-local MirageLabel = HomeTab:AddLabel("Mirage Island: Checking...")
-local KitsuneLabel = HomeTab:AddLabel("Kitsune Island: Checking...")
-
--- Vòng lặp cập nhật thông tin Server (Thời gian & Đảo)
-spawn(function()
-    while true do
-        task.wait(1)
-        -- Cập nhật thời gian thực
-        TimeLabel:Set("Time: " .. os.date("%X"))
-        
-        -- Kiểm tra Đảo Mirage (Logic cơ bản cho Blox Fruits)
-        if game.Workspace:FindFirstChild("Mirage Island") then
-            MirageLabel:Set("Mirage Island Status: ✅ Xuất hiện!")
-        else
-            MirageLabel:Set("Mirage Island Status: ❌ Chưa có")
-        end
-
-        -- Kiểm tra Đảo Kitsune
-        if game.Workspace:FindFirstChild("Kitsune Island") then
-            KitsuneLabel:Set("Kitsune Island Status: ✅ Xuất hiện!")
-        else
-            KitsuneLabel:Set("Kitsune Island Status: ❌ Chưa có")
-        end
+-- HÀM KIỂM TRA LEVEL VÀ NHIỆM VỤ (Dựa trên banana.txt)
+function CheckLevel()
+    local Level = game:GetService("Players").LocalPlayer.Data.Level.Value
+    -- Ví dụ Sea 1 (Bạn có thể thêm tiếp các đảo khác từ file banana.txt vào đây)
+    if Level >= 1 and Level <= 9 then
+        NameQuest = "BanditQuest1"
+        QuestLv = 1
+        NameMon = "Bandit"
+        CFrameQ = CFrame.new(1060.9, 16.4, 1547.7)
+        CFrameMon = CFrame.new(1038.5, 41.2, 1576.5)
+    elseif Level >= 10 and Level <= 14 then
+        NameQuest = "JungleQuest"
+        QuestLv = 1
+        NameMon = "Monkey"
+        CFrameQ = CFrame.new(-1601.6, 36.8, 153.3)
+        CFrameMon = CFrame.new(-1448.1, 50.8, 63.6)
     end
-end)
+end
+
+-- TAB HOME
+local HomeTab = Window:MakeTab({ Name = "Tab Home", Icon = "rbxassetid://4483345998" })
+HomeTab:AddLabel("Chủ sở hữu: CONGTHANHIOS")
+HomeTab:AddButton({
+    Name = "Sao chép Facebook",
+    Callback = function()
+        setclipboard("https://www.facebook.com/nguyencongthanh06")
+        OrionLib:MakeNotification({Name = "NCT Hub", Content = "Đã sao chép!", Time = 3})
+    end
+})
 
 -- TAB FARMING
 local FarmingTab = Window:MakeTab({ Name = "Tab Farming", Icon = "rbxassetid://4483345998" })
 
 FarmingTab:AddToggle({
-	Name = "Auto Farm Level",
-	Default = false,
-	Callback = function(Value)
-		_G.AutoFarm = Value
-		spawn(function()
-			while _G.AutoFarm do
-				task.wait()
-				-- Bạn hãy dán Code Farm của game bạn vào đây
-				-- Ví dụ: game.ReplicatedStorage.Remotes.CommF_:InvokeServer("Attack")
-			end
-		end)
-	end    
+    Name = "Auto Farm Level",
+    Default = false,
+    Callback = function(Value)
+        _G.AutoFarm = Value
+    end    
 })
 
--- CÁC TAB CÒN LẠI
-local SettingTab = Window:MakeTab({ Name = "Tab Setting", Icon = "rbxassetid://4483345998" })
-local FishingTab = Window:MakeTab({ Name = "Tab Fishing", Icon = "rbxassetid://4483345998" })
-local SeaEventTab = Window:MakeTab({ Name = "Tab Sea Event", Icon = "rbxassetid://4483345998" })
-local FruitTab = Window:MakeTab({ Name = "Tab Fruit And Raid", Icon = "rbxassetid://4483345998" })
-local TeleportTab = Window:MakeTab({ Name = "Tab Teleport", Icon = "rbxassetid://4483345998" })
+-- LUỒNG XỬ LÝ AUTO FARM
+spawn(function()
+    while true do
+        task.wait()
+        if _G.AutoFarm then
+            pcall(function()
+                CheckLevel()
+                -- Nếu chưa có quest thì đi nhận
+                if not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible then
+                    Tween(CFrameQ)
+                    if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - CFrameQ.Position).Magnitude <= 5 then
+                        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest", NameQuest, QuestLv)
+                    end
+                else
+                    -- Đã có quest, đi đánh quái
+                    for i,v in pairs(game.Workspace.Enemies:GetChildren()) do
+                        if v.Name == NameMon and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                            repeat
+                                task.wait()
+                                -- Tự bật Haki
+                                if _G.AutoBuso and not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") then
+                                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buso")
+                                end
+                                -- Gom quái và đánh
+                                v.HumanoidRootPart.CanCollide = false
+                                v.HumanoidRootPart.CFrame = CFrameMon
+                                Tween(v.HumanoidRootPart.CFrame * CFrame.new(0, 7, 0))
+                                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Attack", v.HumanoidRootPart.CFrame)
+                            until not _G.AutoFarm or v.Humanoid.Health <= 0
+                        end
+                    end
+                    -- Nếu không tìm thấy quái trong Workspace thì bay tới chỗ quái spawn
+                    Tween(CFrameMon)
+                end
+            end)
+        end
+    end
+end)
 
--- Chống AFK (Để treo máy không bị văng)
-local VirtualUser = game:service'VirtualUser'
-game:service'Players'.LocalPlayer.Idled:connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
+-- CHỐNG AFK
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    wait(1)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
 end)
 
 OrionLib:Init()
