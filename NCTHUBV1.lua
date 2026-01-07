@@ -1,207 +1,202 @@
 --==================================================
 -- NCT HUB | GRAVITY STYLE UI (DELTA / SKIBX)
 -- Owner : CongThanhios
--- Type  : FULL UI + CORE (SAFE)
+-- FULL UI + FULL CORE (SAFE)
 --==================================================
 
---==================== WAIT LOAD ====================
+-------------------- WAIT LOAD ----------------------
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
---==================== SERVICES =====================
+-------------------- SERVICES -----------------------
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
 
---==================== CLEAN OLD UI =================
+local player = Players.LocalPlayer
+repeat task.wait() until player.Character
+repeat task.wait() until player:FindFirstChild("Data")
+repeat task.wait() until player.Data:FindFirstChild("Level")
+
+-------------------- CLEAN UI -----------------------
 pcall(function()
-    local old = game.CoreGui:FindFirstChild("NCT_HUB_UI")
-    if old then old:Destroy() end
+    if game.CoreGui:FindFirstChild("NCT_HUB_UI") then
+        game.CoreGui.NCT_HUB_UI:Destroy()
+    end
 end)
 
---==================== SCREEN GUI ===================
-local ScreenGui = Instance.new("ScreenGui")
+-------------------- GLOBAL -------------------------
+_G.AutoFarmLevel = false
+_G.AutoBoss = false
+_G.AutoSeaEvent = false
+_G.AutoBuso = true
+_G.SelectWeapon = "Melee"
+
+-------------------- SEA CHECK ----------------------
+local Sea = 0
+if game.PlaceId == 2753915549 then Sea = 1 end
+if game.PlaceId == 4442272183 then Sea = 2 end
+if game.PlaceId == 7449423635 then Sea = 3 end
+
+-------------------- TWEEN --------------------------
+local function TweenTo(cf)
+    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local dist = (hrp.Position - cf.Position).Magnitude
+    TweenService:Create(
+        hrp,
+        TweenInfo.new(dist/300, Enum.EasingStyle.Linear),
+        {CFrame = cf}
+    ):Play()
+end
+
+-------------------- EQUIP --------------------------
+local function EquipWeapon()
+    for _,v in pairs(player.Backpack:GetChildren()) do
+        if v:IsA("Tool") and (v.ToolTip == _G.SelectWeapon or v.Name == _G.SelectWeapon) then
+            player.Character.Humanoid:EquipTool(v)
+            break
+        end
+    end
+end
+
+-------------------- CHECK LEVEL (SEA 1) -------------
+local NameMon, NameQuest, QuestLv, CFrameQ, CFrameMon
+local function CheckLevel()
+    local lv = player.Data.Level.Value
+    if Sea == 1 then
+        if lv <= 9 then
+            NameMon="Bandit"
+            NameQuest="BanditQuest1"
+            QuestLv=1
+            CFrameQ=CFrame.new(1060,16,1547)
+            CFrameMon=CFrame.new(1038,41,1576)
+        elseif lv <= 14 then
+            NameMon="Monkey"
+            NameQuest="JungleQuest"
+            QuestLv=1
+            CFrameQ=CFrame.new(-1601,36,153)
+            CFrameMon=CFrame.new(-1448,50,63)
+        end
+    end
+end
+
+-------------------- UI -----------------------------
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 ScreenGui.Name = "NCT_HUB_UI"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game.CoreGui
 
---==================== MAIN FRAME ===================
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.fromScale(0.65, 0.65)
-Main.Position = UDim2.fromScale(0.175, 0.175)
+Main.Size = UDim2.fromScale(0.65,0.65)
+Main.Position = UDim2.fromScale(0.175,0.175)
 Main.BackgroundColor3 = Color3.fromRGB(18,18,18)
-Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 
---==================== SIDEBAR ======================
 local Sidebar = Instance.new("Frame", Main)
-Sidebar.Size = UDim2.fromScale(0.23, 1)
+Sidebar.Size = UDim2.fromScale(0.23,1)
 Sidebar.BackgroundColor3 = Color3.fromRGB(14,14,14)
-Sidebar.BorderSizePixel = 0
 Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0,16)
 
-local SideLayout = Instance.new("UIListLayout", Sidebar)
-SideLayout.Padding = UDim.new(0,6)
-SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-SideLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-
---==================== PAGE HOLDER ==================
 local Holder = Instance.new("Frame", Main)
-Holder.Size = UDim2.fromScale(0.77, 1)
-Holder.Position = UDim2.fromScale(0.23, 0)
+Holder.Size = UDim2.fromScale(0.77,1)
+Holder.Position = UDim2.fromScale(0.23,0)
 Holder.BackgroundTransparency = 1
 
 local Pages = {}
 
---==================== TAB FUNCTION =================
-local function CreateTab(name, icon)
-    local Button = Instance.new("TextButton", Sidebar)
-    Button.Size = UDim2.fromScale(0.9, 0.07)
-    Button.Text = icon .. "  " .. name
-    Button.Font = Enum.Font.GothamSemibold
-    Button.TextSize = 14
-    Button.TextColor3 = Color3.new(1,1,1)
-    Button.BackgroundColor3 = Color3.fromRGB(26,26,26)
-    Button.BorderSizePixel = 0
-    Instance.new("UICorner", Button).CornerRadius = UDim.new(0,10)
+local function CreateTab(name,icon)
+    local btn = Instance.new("TextButton", Sidebar)
+    btn.Size = UDim2.fromScale(0.9,0.07)
+    btn.Text = icon.." "..name
+    btn.BackgroundColor3 = Color3.fromRGB(26,26,26)
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner",btn)
 
-    local Page = Instance.new("Frame", Holder)
-    Page.Size = UDim2.fromScale(1,1)
-    Page.Visible = false
-    Page.BackgroundTransparency = 1
+    local page = Instance.new("Frame", Holder)
+    page.Size = UDim2.fromScale(1,1)
+    page.Visible = false
+    page.BackgroundTransparency = 1
 
-    Button.MouseButton1Click:Connect(function()
-        for _,p in pairs(Pages) do
-            p.Visible = false
-        end
-        Page.Visible = true
+    btn.MouseButton1Click:Connect(function()
+        for _,p in pairs(Pages) do p.Visible=false end
+        page.Visible=true
     end)
 
-    table.insert(Pages, Page)
-    return Page
+    table.insert(Pages,page)
+    return page
 end
 
---==================== TABS =========================
-local Home     = CreateTab("Home","🏠")
-local Farming  = CreateTab("Farming","⚔")
-local Boss     = CreateTab("Boss","👑")
-local Sea      = CreateTab("Sea Event","🌊")
-local Teleport = CreateTab("Teleport","📍")
-local Setting  = CreateTab("Setting","⚙")
-
+local Home = CreateTab("Home","🏠")
+local Farming = CreateTab("Farming","⚔")
 Pages[1].Visible = true
 
---==================== GLOBAL FLAGS =================
-_G.AutoFarmLevel = false
-_G.AutoBoss = false
-_G.AutoSeaEvent = false
+-------------------- HOME ---------------------------
+local title = Instance.new("TextLabel", Home)
+title.Size = UDim2.fromScale(1,0.3)
+title.Text = "NCT HUB\nGravity Style\nDelta / Skibx"
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.BackgroundTransparency = 1
 
---==================== HOME PAGE ====================
-do
-    local Title = Instance.new("TextLabel", Home)
-    Title.Size = UDim2.fromScale(1,0.25)
-    Title.Text = "NCT HUB\nGravity Style UI\nDelta / Skibx Ready"
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 22
-    Title.TextColor3 = Color3.new(1,1,1)
-    Title.BackgroundTransparency = 1
-end
+-------------------- FARM TOGGLE --------------------
+local btn = Instance.new("TextButton", Farming)
+btn.Size = UDim2.fromScale(0.5,0.1)
+btn.Position = UDim2.fromScale(0.05,0.05)
+btn.Text = "Auto Farm : OFF"
+btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+btn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner",btn)
 
---==================== FARMING PAGE =================
-do
-    local Toggle = Instance.new("TextButton", Farming)
-    Toggle.Size = UDim2.fromScale(0.5,0.1)
-    Toggle.Position = UDim2.fromScale(0.05,0.05)
-    Toggle.Text = "Auto Farm Level : OFF"
-    Toggle.Font = Enum.Font.Gotham
-    Toggle.TextSize = 14
-    Toggle.TextColor3 = Color3.new(1,1,1)
-    Toggle.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    Instance.new("UICorner", Toggle)
+btn.MouseButton1Click:Connect(function()
+    _G.AutoFarmLevel = not _G.AutoFarmLevel
+    btn.Text = "Auto Farm : "..(_G.AutoFarmLevel and "ON" or "OFF")
+end)
 
-    Toggle.MouseButton1Click:Connect(function()
-        _G.AutoFarmLevel = not _G.AutoFarmLevel
-        Toggle.Text = "Auto Farm Level : " .. (_G.AutoFarmLevel and "ON" or "OFF")
-    end)
-end
-
---==================== BOSS PAGE ====================
-do
-    local Toggle = Instance.new("TextButton", Boss)
-    Toggle.Size = UDim2.fromScale(0.5,0.1)
-    Toggle.Position = UDim2.fromScale(0.05,0.05)
-    Toggle.Text = "Auto Boss : OFF"
-    Toggle.Font = Enum.Font.Gotham
-    Toggle.TextSize = 14
-    Toggle.TextColor3 = Color3.new(1,1,1)
-    Toggle.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    Instance.new("UICorner", Toggle)
-
-    Toggle.MouseButton1Click:Connect(function()
-        _G.AutoBoss = not _G.AutoBoss
-        Toggle.Text = "Auto Boss : " .. (_G.AutoBoss and "ON" or "OFF")
-    end)
-end
-
---==================== SEA EVENT PAGE ===============
-do
-    local Toggle = Instance.new("TextButton", Sea)
-    Toggle.Size = UDim2.fromScale(0.5,0.1)
-    Toggle.Position = UDim2.fromScale(0.05,0.05)
-    Toggle.Text = "Auto Sea Event : OFF"
-    Toggle.Font = Enum.Font.Gotham
-    Toggle.TextSize = 14
-    Toggle.TextColor3 = Color3.new(1,1,1)
-    Toggle.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    Instance.new("UICorner", Toggle)
-
-    Toggle.MouseButton1Click:Connect(function()
-        _G.AutoSeaEvent = not _G.AutoSeaEvent
-        Toggle.Text = "Auto Sea Event : " .. (_G.AutoSeaEvent and "ON" or "OFF")
-    end)
-end
-
---==================== TELEPORT PAGE =================
-do
-    local Label = Instance.new("TextLabel", Teleport)
-    Label.Size = UDim2.fromScale(1,0.15)
-    Label.Text = "Teleport UI (placeholder)"
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 16
-    Label.TextColor3 = Color3.new(1,1,1)
-    Label.BackgroundTransparency = 1
-end
-
---==================== SETTING PAGE =================
-do
-    local Label = Instance.new("TextLabel", Setting)
-    Label.Size = UDim2.fromScale(1,0.15)
-    Label.Text = "UI / Performance Settings"
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 16
-    Label.TextColor3 = Color3.new(1,1,1)
-    Label.BackgroundTransparency = 1
-end
-
---==================== CORE LOOP ====================
+-------------------- CORE LOOP ----------------------
 task.spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            if _G.AutoFarmLevel then
-                -- logic gắn sau
-            end
-            if _G.AutoBoss then
-                -- logic gắn sau
-            end
-            if _G.AutoSeaEvent then
-                -- logic gắn sau
-            end
-        end)
+    while task.wait(0.4) do
+        if _G.AutoFarmLevel then
+            pcall(function()
+                CheckLevel()
+                local char = player.Character
+                local hrp = char.HumanoidRootPart
+
+                if _G.AutoBuso and not char:FindFirstChild("HasBuso") then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+                end
+
+                if not player.PlayerGui.Main.Quest.Visible then
+                    TweenTo(CFrameQ)
+                    if (hrp.Position - CFrameQ.Position).Magnitude < 15 then
+                        ReplicatedStorage.Remotes.CommF_:InvokeServer(
+                            "StartQuest",NameQuest,QuestLv
+                        )
+                    end
+                else
+                    local mob = workspace.Enemies:FindFirstChild(NameMon)
+                    if mob and mob:FindFirstChild("HumanoidRootPart") then
+                        EquipWeapon()
+                        mob.HumanoidRootPart.CanCollide=false
+                        mob.HumanoidRootPart.CFrame = hrp.CFrame * CFrame.new(0,0,-3)
+                    else
+                        TweenTo(CFrameMon)
+                    end
+                end
+            end)
+        end
     end
 end)
 
---==================== END SCRIPT ===================
+-------------------- ANTI AFK -----------------------
+player.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
+
+print("[NCT HUB] FULL GRAVITY SCRIPT LOADED")
