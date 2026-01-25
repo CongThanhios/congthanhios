@@ -1,5 +1,5 @@
- -- ts file was generated at https://discord.gg/3mtF6UAY
-
+local player = game.Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
 hookfunction(require(game:GetService("ReplicatedStorage").Effect.Container.Death), function()
 end)
