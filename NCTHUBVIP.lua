@@ -4261,12 +4261,44 @@ local vu616 = loadstring(game:HttpGet("https://raw.githubusercontent.com/CongTha
 local v617 = Instance.new("ScreenGui")
 v617.Name = "ControlGUI"
 v617.Parent = game.CoreGui
+
 local vu618 = Instance.new("ImageButton")
 vu618.Size = UDim2.new(0, 35, 0, 35)
 vu618.Position = UDim2.new(0.15, 0, 0.15, 0)
 vu618.Image = "rbxassetid://122126282862563"
 vu618.BackgroundTransparency = 1
 vu618.Parent = v617
+
+-- 🌈 Viền
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2
+stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+stroke.Parent = vu618
+
+-- 🌈 Gradient màu
+local gradient = Instance.new("UIGradient")
+gradient.Rotation = 0
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255,0,0)),    -- Đỏ
+    ColorSequenceKeypoint.new(0.16, Color3.fromRGB(255,127,0)),  -- Cam
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255,255,0)),  -- Vàng
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0,255,0)),    -- Lục
+    ColorSequenceKeypoint.new(0.66, Color3.fromRGB(0,255,255)),  -- Lam
+    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(0,0,255)),    -- Chàm
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255,0,255))   -- Tím
+}
+gradient.Parent = stroke
+
+-- 🌈 Chạy màu
+task.spawn(function()
+    while true do
+        for i = 0, 1, 0.01 do
+            gradient.Offset = Vector2.new(i, 0)
+            task.wait(0.02)
+        end
+    end
+end)
+
 local v619 = Instance.new("UICorner")
 v619.CornerRadius = UDim.new(0.25, 0)
 v619.Parent = vu618
