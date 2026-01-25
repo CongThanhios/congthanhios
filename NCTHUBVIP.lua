@@ -1,14 +1,4 @@
---==================================================
--- NCT HUB |
--- Owner : CongThanhios
--- FULL UI + FULL CORE (SAFE)
---==================================================
-
--------------------- WAIT LOAD ----------------------
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
- -- ts file was generated at discord.gg/25ms
+ -- ts file was generated at https://discord.gg/3mtF6UAY
 
 
 hookfunction(require(game:GetService("ReplicatedStorage").Effect.Container.Death), function()
