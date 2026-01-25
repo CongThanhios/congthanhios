@@ -8,7 +8,7 @@
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
- -- ts file was generated at discord.gg/25ms --
+ -- ts file was generated at discord.gg/25ms
 
 
 hookfunction(require(game:GetService("ReplicatedStorage").Effect.Container.Death), function()
